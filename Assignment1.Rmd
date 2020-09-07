@@ -1,0 +1,19 @@
+---
+title: "Assignment1"
+author: "Hangsoo Jeong"
+date: "9/7/2020"
+output: html_document
+---
+# Level 1 title
+
+Hahaha
+
+## Level 2 title
+
+enjoy your life
+
+```{r}
+3+3
+```
+
+That was my first work!
