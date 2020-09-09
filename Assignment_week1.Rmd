@@ -1,0 +1,85 @@
+---
+title: "Assignment_Week1"
+author: "Hangsoo Jeong"
+date: "9/9/2020"
+output: html_document
+---
+## Loading libraries:
+
+First, load the following libraries to run my code.
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+```
+
+## Finding variables:
+
+For the person-level analysis, load the 1-year American Community Survey Sample from 2018.
+
+```{r}
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+
+
+## Variables used:
+
+I decided to explore tenure information at the person-level in Massachusetts. I chose the following variables to analyze the work-related characteristics of residents with different tenure types. However, if one works, it is assumed that he or she commutes.
+
+1. Housing tenure (TEN) (categorical)
+2. Sex (SEX) (categorical)
+3. Income (PINCP) (continuous)
+4. Work hours per week (WKHP) (continuous)
+5. Travel time to work (JWMNP) (continuous)
+
+```{r}
+person_data <- get_pums(variables = c("TEN", 
+                                      "SEX", 
+                                      "PINCP", 
+                                      "WKHP", 
+                                      "JWMNP"),
+                        state = "MA", 
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+  filter(JWMNP > 0) %>%
+  select(TEN_label, SEX_label, PINCP, WKHP, JWMNP)
+```
+
+## Calculating new variables:
+
+After finding my variables, I wanted to classify the tenure by their workload to see if it is related to other variables, such as tenure types and commuting time. So, I created a categorical variable with three categories: "Heavy" if a person works more than 40 hours a week, "Medium" for between 40 to 20 hours, and "Light" otherwise. 
+
+
+```{r}
+person_data <- person_data %>%
+  mutate(workload = case_when(WKHP > 40 ~ "Heavy",
+                               WKHP <= 40 & WKHP > 20 ~ "Medium",
+                               WKHP <= 20 ~ "Light")) %>%
+  select(TEN_label, SEX_label, PINCP, WKHP, JWMNP, workload)
+```
+
+
+Now that I have calculated my variables, I'll display the first few rows of the data frame. 
+
+```{r}
+person_data
+```
+
+
+Here are the same rows but in a formatted table.
+
+```{r}
+knitr::kable(person_data[1:10,])
+```
+
+My final dataset has 33,441 rows, which mean my analysis will include 33,441 person-level microdata.
+
+Finally, I'll save my data as a CSV file so I can use it later.
+
+```{r}
+write_csv(person_data, "people.csv")
+```
