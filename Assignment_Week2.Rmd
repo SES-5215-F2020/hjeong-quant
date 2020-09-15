@@ -1,0 +1,244 @@
+---
+title: "Assignment_Week2"
+author: "Hangsoo Jeong"
+date: "9/15/2020"
+output: html_document
+---
+
+For the second assignment, I’ll be using the following libraries.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+Also, the person-level dataset I created for the last assignment.
+
+```{r}
+person_data <- read_csv("people.csv")
+```
+
+## The continuous variables in the previous dataset.
+
+There were three continuous variables in my person-level dataset in Massachusetts from the 1-year American Community Survey Sample from 2018.
+
+1. Income (PINCP) (continuous)
+2. Work hours per week (WKHP) (continuous)
+3. Travel time to work (JWMNP) (continuous)
+
+For each continuous variable, I will calculate the sample mean, the sample standard deviation, the 95-percent confidence interval for the population mean, and the interquartile range for each continuous variable. Also, I will create a histogram to illustrate the distribution of each variable.
+
+
+## The Summary statistics of the income data.
+
+First, the income. The Summary statistics of the income are as below.
+
+```{r}
+PINCP_summary <- summary(person_data$PINCP)
+PINCP_summary
+```
+
+# The mean of the income data.
+
+The mean of the income is 72961.97 dollars as below.
+
+```{r}
+PINCP_summary["Mean"]
+```
+
+# The standard deviation of the income data.
+
+Here is the standard deviation of the income, and its value is 88111.95 dollars.
+
+```{r}
+sd(person_data$PINCP)
+```
+
+# The 95-percent confidence interval for the income data.
+
+I created a one-sample t-test to get a 95-percent confidence interval for the population mean.
+
+```{r}
+conf_int <- t.test(person_data$PINCP)
+
+conf_int
+```
+So, based on the data above, the 95-percent confidence interval for the income is from 72017.56 dollars to 73906.38 dollars.
+
+# The interquartile range of the income data.
+
+The interquartile range is from the first quartile to the third quartile of data.
+
+```{r}
+PINCP_summary["1st Qu."]
+PINCP_summary["3rd Qu."]
+```
+Therefore, the interquartile range of the income is from 26700 dollars to 88400 dollars.
+
+# The historgram of the income data.
+
+Here are the two version of historgram I can create using hist() and geom_histogram() with ggplot().
+
+```{r}
+hist(person_data$PINCP)
+```
+
+```{r}
+ggplot(person_data, aes(x = PINCP)) + geom_histogram()
+```
+
+The distribution is skewed to the right. It's shape looks closer to a negative binomial distribution than to a normal distribution. Based on the bump in the number of people who report earning around 5e+05 dollars as income, a group of outliers makes much money than other significant people.
+
+
+## The Summary statistics of the Work hours per week data.
+
+Same steps for the Work hours per week data. I will skip explaining each step, except the calculated values and the illustration of each data's histogram, as the only difference is variables.
+
+```{r}
+WKHP_summary <- summary(person_data$WKHP)
+WKHP_summary
+```
+
+# The mean of the Work hours per week data.
+
+```{r}
+WKHP_summary["Mean"]
+```
+
+The mean of the work hours per week data is 38.49804 hours.
+
+# The standard deviation of the work hours per week data.
+
+```{r}
+sd(person_data$WKHP)
+```
+
+The standard deviation of the work hours per week data is 12.76013 hours.
+
+# The 95-percent confidence interval for the work hours per week data.
+
+```{r}
+conf_int <- t.test(person_data$WKHP)
+
+conf_int
+```
+
+The 95-percent confidence interval for the work hours per week data is from 38.36127 hours to 38.63481 hours.
+
+# The interquartile range of the work hours per week data.
+
+```{r}
+WKHP_summary["1st Qu."]
+WKHP_summary["3rd Qu."]
+```
+
+The interquartile range of the work hours per week data is from 35 hours to 45 hours.
+
+# The historgram of the work hours per week data.
+
+```{r}
+hist(person_data$WKHP)
+```
+
+```{r}
+ggplot(person_data, aes(x = WKHP)) + geom_histogram()
+```
+
+The distribution is close to a normal distribution, having major population is near to mean. The average value is also the most common value, and values lower and higher than that are equally common.
+
+
+## The Summary statistics of the travel time to work data.
+
+Same steps for the travel time to work data. I will skip explaining each step, except the calculated values and the illustration of each data's histogram, as the only difference is variables.
+
+```{r}
+JWMNP_summary <- summary(person_data$JWMNP)
+JWMNP_summary
+```
+
+# The mean of the travel time to work data.
+
+```{r}
+JWMNP_summary["Mean"]
+```
+
+The mean of the travel time to work data is 30.56508 minutes.
+
+# The standard deviation of the travel time to work data.
+
+```{r}
+sd(person_data$JWMNP)
+```
+
+The standard deviation of the travel time to work data is 23.5714 minutes.
+
+# The 95-percent confidence interval for the travel time to work data.
+
+```{r}
+conf_int <- t.test(person_data$JWMNP)
+
+conf_int
+```
+
+The 95-percent confidence interval for the travel time to work data is from 30.31244 minutes to 30.81773 minutes.
+
+# The interquartile range of the travel time to work data.
+
+```{r}
+JWMNP_summary["1st Qu."]
+JWMNP_summary["3rd Qu."]
+```
+
+The interquartile range of the travel time to work data is from 15 minutes to 40 minutes.
+
+# The historgram of the travel time to work data.
+
+```{r}
+hist(person_data$JWMNP)
+```
+
+```{r}
+ggplot(person_data, aes(x = JWMNP)) + geom_histogram()
+```
+
+Just as the histogram of the income data, the distribution is skewed to the right. Its shape looks closer to a negative binomial distribution or a Poisson distribution than to a normal distribution. Based on the bump in the number of people who report traveling almost 150 minutes, many outliers travel much more than other significant people.
+
+
+## The categorical variables in the previous dataset.
+
+There were three categorical variables in my person-level dataset in Massachusetts from the 1-year American Community Survey Sample from 2018.
+
+1. Housing tenure (TEN) (categorical)
+2. Sex (SEX) (categorical)
+3. Workload level (workload) (categorical)
+
+I will calculate the 95-percent confidence interval for each category's proportion, only for the workload data. The workload data is the one I created from the first assignment, and the data on Housing tenure type and sex are either the information I am not interested in or less informative.
+
+
+## The Summary statistics of the workload data.
+
+# the possible categories of the workload data.
+
+All the possible values of a categorical variable, Workload level, is as below.
+
+```{r}
+unique(person_data$workload)
+```
+
+# the 95-percent confidence interval for the proportion of the population in each category.
+
+First, I can use the t.test() function to get the 95-percent confidence interval for the Light category. As shown below, it is from 0.1219537 to 0.1290555.
+
+```{r}
+t.test(person_data$workload == "Light")
+```
+
+Same functions for other categories. The 95-percent confidence intervals for the Medium and the Heavy are from 0.5809775 to 0.5915353 and from 0.2833842 to 0.2930938 each.
+
+```{r}
+t.test(person_data$workload == "Medium")
+```
+
+```{r}
+t.test(person_data$workload == "Heavy")
+```
