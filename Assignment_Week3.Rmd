@@ -1,0 +1,231 @@
+---
+title: "Assignment_Week3"
+author: "Hangsoo Jeong"
+date: "9/23/2020"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(tidycensus)
+tract_data <- read_csv("people.csv")
+```
+
+### Topic Reminder.
+
+I want to explore the relationship between income, travel time to work, Workload level, sex, and Housing tenure type at the person-level in Massachusetts.
+
+
+## Relationship between continuous variables; income and travel time to work.
+
+First, I will test the relationship between my continuous variables - income and travel time to work - by running a correlation test. 
+
+```{r cars}
+correlation1 <- cor.test(tract_data$PINCP, tract_data$JWMNP)
+correlation1
+```
+
+Based on the Pearson's r(or correlation coefficient) and p-values for the correlation tests above, a correlation close to +0 indicates a week linear relationship between the variables. Also, its positive correlation at a 95% confidence level. A p-value lower than the conventional 5% (P<0.05) demonstrates its statistically significance.
+
+I want to see what this relationship looks like, so I chose to represent this on a scatterplot.
+
+```{r}
+ggplot(tract_data, aes(x = JWMNP, y = PINCP)) + 
+    geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+    geom_smooth() +
+    theme_bw() +
+    scale_x_continuous(name = "Travel time to work (Minutes)") +
+    scale_y_continuous(name = "Income",
+                      breaks = seq(0, 105, by = 5), 
+                      labels = paste("",
+                                  prettyNum(seq(0, 105, by = 5),
+                                            big.mark = ","))) 
+```
+
+
+## Relationship between categorical variables; Workload level and housing tenure type.
+
+I use the chi-square test of association to determine whether there is a statistically significant association between Workload level and housing tenure type.
+
+```{r}
+chi_sq <- chisq.test(tract_data$workload, tract_data$TEN_label)
+chi_sq
+chi_sq$observed
+chi_sq$expected
+```
+
+I see that there is no category violates the chi-square observed table, as it has a value more than 5. Also, With a p-value so much less than 0.05, we can assume a statistically significant relationship between workload level and housing tenure type at a 95% confidence level. 
+
+
+## Relationships between categorical variables; Workload level and sex.
+
+I use the chi-square test of association to determine whether there is a statistically significant association between Workload level and sex.
+
+```{r}
+chi_sq <- chisq.test(tract_data$workload, tract_data$SEX_label)
+chi_sq
+chi_sq$observed
+chi_sq$expected
+```
+
+I see that there is no category violates the chi-square observed table, as it has a value more than 5. Also, With a p-value so much less than 0.05, we can assume a statistically significant relationship between workload level and sex at a 95% confidence level.
+
+
+## Relationships between categorical variables; sex and housing tenure type.
+
+I use the chi-square test of association to determine whether there is a statistically significant association between sex and housing tenure type.
+
+```{r}
+chi_sq <- chisq.test(tract_data$SEX_label, tract_data$TEN_label)
+chi_sq
+chi_sq$observed
+chi_sq$expected
+```
+
+I see that there is no category violates the chi-square observed table, as it has a value more than 5. Also, With a p-value so much less than 0.05, we can assume a statistically significant relationship between sex and housing tenure type at a 95% confidence level.
+
+
+## Relationships between Workload level and continuous variables.
+
+I use the anova test to find the relationship between workload level and my continuous variables: income and travel time to work. 
+
+```{r}
+anova <- aov (JWMNP ~ workload, data = tract_data)
+summary(anova)
+anova <- aov (PINCP ~ workload, data = tract_data)
+summary(anova)
+```
+
+Difference Check:
+```{r}
+differences <- TukeyHSD(anova)
+as_tibble(cbind(pair = row.names(differences$workload),
+                differences$workload))
+```
+
+
+There exists a significant association between workload level and income, and workload level and travel time to work at a 95% confidence level. All p-values fall well below the 0.05 threshold. 
+
+I chose to display the relationship between workload level and income using a box-plot in black & white, and the relationship between workload level and travel time to work using a violin plot in colors.
+
+```{r}
+ggplot(tract_data, aes(x = workload, y = PINCP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_x_discrete(name = "Workload Level") +
+  scale_y_continuous(name = "Income",
+                     breaks = seq(0, 105, by = 5),
+                     labels = paste(prettyNum(seq(0, 105, by = 5), 
+                                              big.mark = ",")))
+```
+
+```{r}
+ggplot(tract_data, aes(x = workload, y = JWMNP, color = workload)) +
+  geom_violin() +
+  scale_x_discrete(name = "Workload Level") +
+  scale_y_continuous(name = "Travel Time to Work (Minutes)",
+                     breaks = seq(10, 80, by = 10)) +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
+## Relationships between housing tenure type and continuous variables.
+
+I use the anova test to find the relationship between housing tenure type and my continuous variables: income and travel time to work. 
+
+```{r}
+anova <- aov (JWMNP ~ TEN_label, data = tract_data)
+summary(anova)
+anova <- aov (PINCP ~ TEN_label, data = tract_data)
+summary(anova)
+```
+
+Difference Check:
+```{r}
+differences <- TukeyHSD(anova)
+as_tibble(cbind(pair = row.names(differences$TEN_label),
+                differences$TEN_label))
+```
+
+
+There exists a significant association between housing tenure type and income, and housing tenure type and travel time to work at a 95% confidence level. All p-values fall well below the 0.05 threshold. 
+
+I chose to display the relationship between housing tenure type and income using a box-plot in black & white, and the relationship between housing tenure type and travel time to work using a violin plot in colors. As the label names are too complicated, I relabeled them to shorter ones as well.
+
+```{r}
+ggplot(tract_data, aes(x = TEN_label, y = PINCP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_x_discrete(name = "Housing Tenure Type", 
+                   labels = c("N/A",
+                              "Occupied but no rent",
+                              "Owned free and clear",
+                              "Owned with loan",
+                              "Rented")) +
+  scale_y_continuous(name = "Income",
+                     breaks = seq(0, 105, by = 5),
+                     labels = paste(prettyNum(seq(0, 105, by = 5), 
+                                              big.mark = ",")))
+```
+
+```{r}
+ggplot(tract_data, aes(x = TEN_label, y = JWMNP, color = workload)) +
+  geom_violin() +
+  scale_x_discrete(name = "Housing Tenure Type",
+                     labels = c("N/A",
+                              "Occupied but no rent",
+                              "Owned free and clear",
+                              "Owned with loan",
+                              "Rented")) +
+  scale_y_continuous(name = "Travel Time to Work (Minutes)",
+                     breaks = seq(10, 80, by = 10)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  theme(legend.position = "none")
+```
+
+
+## Relationships between sex and continuous variables.
+
+I use a two-sample t-test to find the relationship between sex and my continuous variables: income and travel time to work. 
+
+```{r}
+difference1 = t.test(PINCP ~ SEX_label, 
+                    data = tract_data)
+difference1
+difference2 = t.test(JWMNP ~ SEX_label, 
+                    data = tract_data)
+difference2
+```
+
+There is a significant relationship between sex and income at a 95% confidence level; tracts with a male group have a higher income. Also, there is a significant relationship between sex and travel time to work at a 95% confidence level; tracts with male group travel more time to work than the female group.
+
+I chose to display the relationship between sex and income using a box-plot in black & white, and the relationship between sex and travel time to work using a violin plot in colors.
+
+```{r}
+ggplot(tract_data, aes(x = SEX_label, y = PINCP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_x_discrete(name = "Sex") +
+  scale_y_continuous(name = "Income",
+                     breaks = seq(0, 105, by = 5),
+                     labels = paste(prettyNum(seq(0, 105, by = 5), 
+                                              big.mark = ",")))
+```
+
+```{r}
+ggplot(tract_data, aes(x = SEX_label, y = JWMNP, color = workload)) +
+  geom_violin() +
+  scale_x_discrete(name = "Sex") +
+  scale_y_continuous(name = "Travel Time to Work (Minutes)",
+                     breaks = seq(10, 80, by = 10)) +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
