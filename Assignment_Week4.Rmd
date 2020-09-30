@@ -1,0 +1,55 @@
+---
+title: "Assignment_Week4"
+author: "Hangsoo Jeong"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidycensus)
+tract_data <- read_csv("people.csv")
+```
+
+### Linear Regression Model 
+
+**Dependent Variable**: Income (PINCP) (continuous)
+
+**Independent Variables**: 
+
+*1.* Work hours per week (WKHP) (continuous)
+
+*2.* Travel time to work (JWMNP) (continuous)
+
+*3.* Sex (SEX) (categorical)
+
+*4.* Housing tenure (TEN) (categorical)
+
+As some categories within housing tenure variable have ancertain value(e.g. N/A (GQ/vacant)) that I am not interested in, I will choose three subcategories(Rented, Owned with loan, and Owned free and clear) in predicting income. 
+
+```{r}
+tract_data <- read_csv("people.csv") %>%
+  mutate(TEN_label = case_when(
+    TEN_label=="Rented" ~ "Rented", 
+    TEN_label=="Owned with mortgage or loan (include home equity loans)" ~ "Owned with loan",
+    TEN_label=="Owned free and clear" ~ "Owned free and clear"))
+```
+
+
+```{r}
+model <- lm(PINCP ~ WKHP + JWMNP + SEX_label + TEN_label, 
+            data = tract_data)
+summary(model)
+```
+
+With an adjusted R Square value of .1662, these variables explain 17% of the variation in income value. Important to note is that all of these relationships are statistically significant. According to the linear regression model, Work hours per week, Travel time to work, Sex, and categories within the Housing tenure variable I chose have a statistically significant relationship in predicting income.  
+
+Work hours per week have a positive relationship with my dependent variable, meaning that they get more income as people work more hours. For every one hour increase in the census tract's work hours per week, the income value increases by 2108.97 dollars, which corresponds to about one-hundredth of a percentage point. And this is statistically significant at a 95% confidence level.
+
+Travel time to work also has a positive relationship with my dependent variable, meaning that they make more money as people work farther. For every one minute increase in the census tract's travel time to work, the income value increases by 282.77 dollars, which corresponds to about one one-hundredth of a percentage point. This is statistically significant at a 95% confidence level.
+
+With Female as my base case, I can see that on average, males' income is 17774.17 points higher in census tracts than females. With a p-value less than 2e-16, the male population's proportion is a statistically significant predictor when controlling for other variables.
+
+Regarding Housing tenure type, With Owned free and clear as my base case, the one who owns his/her housing with the loan has 4891.69 points less income than someone who owns housing free and clear in census tracts on average. Simultaneously, someone who rents his/her accommodation makes 35744.98 points less income than someone who owns housing free and clear.
+
