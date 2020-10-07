@@ -1,0 +1,109 @@
+---
+title: "Assignment_Week5"
+author: "Hangsoo Jeong"
+date: "10/7/2020"
+output: html_document
+---
+
+## load libraries
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(jtools)
+library(interactions)
+```
+
+## Load data
+
+Same as in Assignment 4, I chose to mutate the income to be the comparison for the other variables, such as Work hours per week (continuous), Travel time to work (continuous), Sex (categorical), and Housing tenure Type (categorical). As some categories within the housing tenure variable have uncertain value(e.g., N/A (GQ/vacant)), I choose three subcategories(Rented, Owned with the loan, and Owned free and clear) in predicting income. 
+My main interest is on the effect of the work hours per week and the travel time to work on the income. So, I will transform and apply the interaction term to the two variables for this assignment.
+
+```{r}
+tract_data <- read_csv("people.csv") %>%
+  mutate(TEN_label = case_when(
+    TEN_label=="Rented" ~ "Rented", 
+    TEN_label=="Owned with mortgage or loan (include home equity loans)" ~ "Owned with loan",
+    TEN_label=="Owned free and clear" ~ "Owned free and clear"))
+```
+
+## Initial regression model
+
+```{r}
+model1 <- lm(PINCP ~ WKHP + JWMNP + SEX_label + TEN_label, 
+            data = tract_data)
+summary(model1)
+```
+## Log transformation
+
+Try a log transformation on the travel time to work.
+
+```{r}
+model2 <- lm(PINCP ~ WKHP + log(JWMNP) + SEX_label + TEN_label, 
+            data = tract_data)
+summary(model2)
+```
+
+My R-squared value has improved very slightly, from 0.1564 to 0.1567. My interpretation of the results is that for every doubling of the travel time to work, the tract's income increases by 8699.61. This result is statistically significant, but I'm not sure that it has limited practical significance because the change in income is so small based on a doubling of the travel time to work.
+
+## Converting a continuous variable to a categorical variable
+
+I'd like to see if converting the Work hours per week to a categorical variable has an effect in predicting income. For this, I simply load and use the workload level variable I have already created in the first assignment.
+
+```{r}
+model3 <- lm(PINCP ~ workload + log(JWMNP) + SEX_label + TEN_label, 
+            data = tract_data)
+summary(model3)
+```
+
+While the result is still statistically significant, my R-squared value has slightly decreased, from 0.1567 to 0.1506. It is not a better fitting model.
+
+## Adding an interaction term
+
+I was curious to see how an interaction between the log of the travel time to work and workload would impact the model fit.
+
+```{r}
+model4 <- lm(PINCP ~ workload + log(JWMNP) + SEX_label + TEN_label + workload:log(JWMNP), 
+            data = tract_data)
+summary(model4)
+```
+
+The R-squared value is slightly increased to 0.1516. And all my results are statistically significant. The interaction terms between the log of the travel time to work and the workload categories tells us that for every doubling of travel time to work, the income decreases for both light and medium work level with heavy work level as my base case.
+
+## Visualizing the results
+
+```{r}
+ModelFit <- tibble(model = c(1, 2, 3, 4),
+                   R_square = c(summary(model1)$adj.r.squared,
+                                summary(model2)$adj.r.squared,
+                                summary(model3)$adj.r.squared,
+                                summary(model4)$adj.r.squared))
+ggplot(ModelFit, aes(x = model, y = R_square)) +
+  geom_col() +
+  scale_x_discrete(name = "Model",
+                   breaks = breaks <- seq(1, 4, by = 1),
+                   labels = paste("Model", breaks)) +
+  scale_y_continuous(name = "Adjusted R-squared value") +
+  theme_bw()
+```
+
+Model 2 is my best fit.
+
+## Visualize regression results
+
+Model 2 is my best fit. So, I visualize its results related to the work hours per week and the log transformation on the travel time to work, which are the variables that I have been interested in predicting income. 
+
+```{r}
+coeff_desc <- c("Work hours per week" = "WKHP",
+                "Doubling travel time to work" = "log(JWMNP)")
+plot_coefs(model2, 
+           coefs = coeff_desc,
+           plot.distributions = TRUE,
+           rescale.distributions = TRUE) +
+  scale_x_continuous(name = "Effect on income in Massachusetts")
+```
+
+
+
+
+
